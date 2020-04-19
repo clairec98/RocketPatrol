@@ -7,6 +7,7 @@ class Play extends Phaser.Scene {
         // load images/tile sprite
         this.load.image('rocket', './assets/rocket.png');
         this.load.image('spaceship', './assets/spaceship.png');
+        this.load.image('small_ship', './assets/small_ship.png');
         this.load.image('starfield', './assets/starfield.png');
         this.load.spritesheet('explosion', './assets/explosion.png', { frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9 });
     }
@@ -31,6 +32,9 @@ class Play extends Phaser.Scene {
         this.ship01 = new Spaceship(this, game.config.width + 192, 132, 'spaceship', 0, 30).setOrigin(0, 0);
         this.ship02 = new Spaceship(this, game.config.width + 96, 196, 'spaceship', 0, 20).setOrigin(0, 0);
         this.ship03 = new Spaceship(this, game.config.width, 260, 'spaceship', 0, 10).setOrigin(0, 0);
+
+        // add small ship
+        this.smallShip = new SmallShip(this, game.config.width + 400, 180, 'small_ship', 0, 25).setOrigin(0, 0);
 
         // define keyboard keys
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -57,9 +61,26 @@ class Play extends Phaser.Scene {
                 top: 5,
                 bottom: 5,
             },
-            fixedWidth: 100
+            fixedWidth: 150
         }
-        this.scoreLeft = this.add.text(69, 54, this.p1Score, scoreConfig);
+        this.scoreLeft = this.add.text(45, 54, 'Score: ' + this.p1Score, scoreConfig);       
+       
+        // timer display
+        let timeConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#F3B141',
+            color: '#843605',
+            align: 'left',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 140
+        }
+        this.timeLeft = this.add.text(460, 54, 'Timer: ' + this.game.settings.displayTimer, timeConfig);   
+        // Each 1000 ms call event 
+        this.timedEvent = this.time.addEvent({ delay: 1000, callback: onEvent, callbackScope: this, loop: true });
 
         // game over flag
         this.gameOver = false;
@@ -67,17 +88,25 @@ class Play extends Phaser.Scene {
         // 60-second play clock
         scoreConfig.fixedWidth = 0;
         this.clock = this.time.delayedCall( game.settings.gameTimer, () => {
-            this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width / 2, game.config.height / 2 + 64, '(F)ire to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', 
+                scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width / 2, game.config.height / 2 + 64, 
+                '(F)ire to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
             this.gameOver = true;
+            if (this.p1Score > highScore){
+                highScore = this.p1Score;
+            }
         }, null, this);
+        this.highScoreLeft = this.add.text(220, 54, 'High Score: ' + highScore, scoreConfig); 
     }
 
     update() {
         // check key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyF)) {
             this.scene.restart(this.p1Score);
+            this.game.settings.displayTimer = this.game.settings.gameTimer / 1000;
         }
+
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             this.scene.start("menuScene");
         }
@@ -87,10 +116,11 @@ class Play extends Phaser.Scene {
         if (!this.gameOver) {
             // update rocket
             this.p1Rocket.update();
-            //update spaceships
+            // update spaceships
             this.ship01.update();
             this.ship02.update();
             this.ship03.update();
+            this.smallShip.update();
         }
         // check collisions
         if (this.checkCollision(this.p1Rocket, this.ship03)) {
@@ -105,7 +135,10 @@ class Play extends Phaser.Scene {
             this.p1Rocket.reset();
             this.shipExplode(this.ship01);
         }
-
+        if(this.checkCollision(this.p1Rocket, this.smallShip)){
+            this.p1Rocket.reset();
+            this.shipExplode(this.smallShip);
+        }
     }
 
     checkCollision(rocket, ship) {
@@ -121,7 +154,7 @@ class Play extends Phaser.Scene {
     }
 
     shipExplode(ship) {
-        ship.alpha = 0; // temporarily hide ship
+        ship.alpha = 0; // temporarily hide 
         // create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
         boom.anims.play('explode'); // play explode animation
@@ -131,7 +164,34 @@ class Play extends Phaser.Scene {
             boom.destroy();
         });
         this.p1Score += ship.points;
-        this.scoreLeft.text = this.p1Score;
+        this.scoreLeft.text = 'Score: ' + this.p1Score;
+        this.clock.delay += 5000;
+        this.game.settings.displayTimer += 5;
         this.sound.play('sfx_explosion');
     }
+
+    smallShipExplode(smallShip) {
+        smallShip.alpha = 0; // temporarily hide ship
+        // create explosion sprite at ship's position
+        let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
+        boom.anims.play('explode'); // play explode animation
+        boom.on('animationcomplete', () => {
+            smallShip.reset();
+            smallShip.alpha = 1;
+            boom.destroy();
+        });
+        this.p1Score += (ship.points * 2);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             mer / 1000;
+        this.scoreLeft.text = 'Score: ' + this.p1Score;
+        this.clock.delay += 5000;
+        this.game.settings.displayTimer += 5;
+        this.sound.play('sfx_explosion');
+    }
+
+}
+
+function onEvent(){
+   if (this.game.settings.displayTimer > 0){
+    this.game.settings.displayTimer -= 1; // decrements by one second
+   }
+   this.timeLeft.setText('Time: ' + game.settings.displayTimer);
 }
