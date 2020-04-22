@@ -1,3 +1,12 @@
+// Claire Camomile
+// Points Breakdown:
+// Track a high score that persists across scenes and display it in the UI (10)
+// Allow the player to control the Rocket after it's fired (10)
+// Display the time remaining (in seconds) on the screen (15)
+// Create a new title screen (15)
+// Create a new spaceship type (w/ new artwork) that's smaller, moves faster, and is worth more points (25)
+// Implement a new timing/scoring mechanism that adds time to the clock for successful hits (25)
+
 let config = {
     type: Phaser.CANVAS,
     width: 640,
